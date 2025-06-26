@@ -1,0 +1,23 @@
+                    }, 2000);
+                }, 10);
+            }
+        }
+        // Próxima pergunta
+        function nextQuestion() {
+            currentQ++;
+            loadQuestion();
+        }
+        // Mostrar resultados
+        function showResults() {
+            elements.quizScreen.classList.add('hidden');
+            elements.resultScreen.classList.remove('hidden');
+            elements.finalScoreEl.textContent = score;
+            elements.correctCountEl.textContent = correct;
+            
+            if (correct === questions.length) {
+                createConfetti();
+            }
+        }
+    </script>
+</body>
+</html>
