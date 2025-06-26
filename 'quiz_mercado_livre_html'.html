@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Mercado Livre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .progress-bar { transition: width 0.5s ease; }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0db4f;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div id="app" class="w-full max-w-md">
+        <!-- Tela Inicial -->
+        <div id="start-screen" class="bg-white rounded-lg shadow-lg p-8 text-center fade-in">
+            <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.21.22/mercadolibre/logo__small@2x.png" alt="Mercado Livre" class="h-16 mx-auto mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Quiz Mercado Livre</h1>
+            <p class="text-gray-600 mb-6">Teste seu conhecimento sobre o universo do Mercado Livre!</p>
+            <button id="start-btn" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-8 rounded-full transition-all">
+                Começar Quiz
+            </button>
+        </div>
+
+        <!-- Tela do Quiz -->
+        <div id="quiz-screen" class="hidden bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="bg-yellow-400 p-4 flex justify-between items-center">
+                <span class="font-bold">Pergunta <span id="current-question">1</span>/7</span>
+                <span class="font-bold">Pontos: <span id="score">0</span></span>
+            </div>
+            <div class="p-6">
+                <div class="mb-4 h-2 bg-gray-200 rounded-full">
+                    <div id="progress-bar" class="h-full bg-blue-500 progress-bar" style="width: 0%"></div>
+                </div>
+                <h2 id="question" class="text-xl font-bold mb-6"></h2>
+                <div id="answers" class="space-y-3"></div>
+                <div id="feedback" class="hidden mt-4 p-3 rounded-lg"></div>
+                <button id="next-btn" class="hidden w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Próxima Pergunta
+                </button>
+            </div>
+        </div>
+
+        <!-- Tela de Resultado -->
+        <div id="result-screen" class="hidden bg-white rounded-lg shadow-lg p-8 text-center fade-in">
+            <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.21.22/mercadolibre/logo__small@2x.png" alt="Mercado Livre" class="h-16 mx-auto mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Quiz Concluído!</h1>
+            <div class="text-4xl font-bold text-yellow-500 mb-2"><span id="final-score">0</span>/140</div>
+            <p class="text-gray-600 mb-6">Você acertou <span id="correct-count">0</span> de 7 perguntas</p>
+            <button id="restart-btn" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-8 rounded-full transition-all">
+                Jogar Novamente
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Dados do Quiz (7 perguntas selecionadas)
+        const questions = [
+            {
+                question: "Qual modal de transporte o Mercado Livre mais utiliza para entregas de longa distância no Brasil?",
+                answers: [
+                    "Aéreo",
+                    "Rodoviário",
+                    "Ferroviário",
+                    "Aquaviário"
+                ],
+                correct: 1,
+                explanation: "O modal rodoviário é o mais utilizado no Brasil devido à sua capilaridade e flexibilidade, permitindo ao Mercado Livre alcançar diversas regiões, embora outros modais sejam usados em operações específicas."
+            },
+            {
+                question: "Como a Inteligência Artificial (IA) é aplicada na logística do Mercado Livre?",
+                answers: [
+                    "Apenas para atendimento ao cliente via chatbots",
+                    "Otimização de rotas e previsão de demanda",
+                    "Criação de campanhas de marketing personalizadas",
+                    "Controle de acesso aos centros de distribuição"
+                ],
+                correct: 1,
+                explanation: "A IA é fundamental para otimizar rotas de entrega, prever a demanda por produtos, gerenciar estoques de forma eficiente e até mesmo automatizar processos em centros de fulfillment, agilizando toda a cadeia logística."
+            },
+            {
+                question: "O que significa 'Estoque Full' no contexto do Mercado Livre?",
+                answers: [
+                    "Estoque completo de todos os produtos disponíveis na plataforma",
+                    "Produtos armazenados e gerenciados pelo Mercado Livre em seus centros de distribuição",
+                    "Estoque de produtos de vendedores que não utilizam o Mercado Envios",
+                    "Estoque de produtos que estão em promoção"
+                ],
+                correct: 1,
+                explanation: "O 'Estoque Full' refere-se aos produtos que são armazenados, embalados e enviados diretamente pelos centros de distribuição do Mercado Livre, garantindo entregas mais rápidas e eficientes para o comprador."
+            },
+            {
+                question: "Qual a principal vantagem da 'Entrega Full' para o consumidor?",
+                answers: [
+                    "Maior variedade de produtos",
+                    "Frete grátis em todas as compras",
+                    "Rapidez e agilidade na entrega",
+                    "Possibilidade de negociar o preço diretamente com o vendedor"
+                ],
+                correct: 2,
+                explanation: "A principal vantagem da 'Entrega Full' é a rapidez, pois os produtos já estão nos centros de distribuição do Mercado Livre, prontos para serem despachados, muitas vezes chegando no mesmo dia ou no dia seguinte."
+            },
+            {
+                question: "Qual o impacto do Mercado Livre na empregabilidade no Brasil?",
+                answers: [
+                    "Gera poucas vagas, pois a maioria dos processos é automatizada",
+                    "Cria milhares de empregos diretos e indiretos em diversas áreas",
+                    "Reduz a necessidade de mão de obra no varejo tradicional",
+                    "Foca apenas em contratações temporárias"
+                ],
+                correct: 1,
+                explanation: "O Mercado Livre é um grande gerador de empregos no Brasil, tanto diretos (em seus centros de distribuição, escritórios, etc.) quanto indiretos (para transportadoras, vendedores, prestadores de serviço), impulsionando a economia."
+            },
+            {
+                question: "A Inteligência Artificial no Mercado Livre também auxilia na prevenção de fraudes. Verdadeiro ou Falso?",
+                answers: [
+                    "Verdadeiro",
+                    "Falso"
+                ],
+                correct: 0,
+                explanation: "Verdadeiro. A IA é amplamente utilizada para analisar padrões de comportamento e transações, identificando e prevenindo atividades fraudulentas, o que aumenta a segurança para compradores e vendedores."
+            },
+            {
+                question: "Qual é a função do 'Mercado Pago' dentro do ecossistema do Mercado Livre?",
+                answers: [
+                    "Apenas um sistema de pagamento para compras",
+                    "Facilitar transações financeiras e oferecer serviços bancários",
+                    "Um programa de fidelidade",
+                    "Um serviço de entrega"
+                ],
+                correct: 1,
+                explanation: "'Mercado Pago' é uma plataforma de pagamentos que facilita transações financeiras, permitindo que usuários realizem pagamentos, transferências e até mesmo tenham acesso a serviços bancários, integrando-se ao ecossistema do Mercado Livre."
+            }
+        ];
+
+        // Variáveis do jogo
+        let currentQ = 0;
+        let score = 0;
+        let correct = 0;
+
+        // Elementos DOM
+        const elements = {
+            startScreen: document.getElementById('start-screen'),
+            quizScreen: document.getElementById('quiz-screen'),
+            resultScreen: document.getElementById('result-screen'),
+            questionEl: document.getElementById('question'),
+            answersEl: document.getElementById('answers'),
+            feedbackEl: document.getElementById('feedback'),
+            nextBtn: document.getElementById('next-btn'),
+            currentQEl: document.getElementById('current-question'),
+            scoreEl: document.getElementById('score'),
+            finalScoreEl: document.getElementById('final-score'),
+            correctCountEl: document.getElementById('correct-count'),
+            progressBar: document.getElementById('progress-bar')
+        };
+
+        // Event Listeners
+        document.getElementById('start-btn').addEventListener('click', startQuiz);
+        document.getElementById('restart-btn').addEventListener('click', startQuiz);
+        elements.nextBtn.addEventListener('click', nextQuestion);
+
+        // Iniciar quiz
+        function startQuiz() {
+            currentQ = 0;
+            score = 0;
+            correct = 0;
+            elements.startScreen.classList.add('hidden');
+            elements.resultScreen.classList.add('hidden');
+            elements.quizScreen.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // Carregar pergunta
+        function loadQuestion() {
+            if (currentQ >= questions.length) {
+                showResults();
+                return;
+            }
+
+            const q = questions[currentQ];
+            elements.currentQEl.textContent = currentQ + 1;
+            elements.progressBar.style.width = `${(currentQ / questions.length) * 100}%`;
+            elements.questionEl.textContent = q.question;
+            elements.answersEl.innerHTML = '';
+            elements.feedbackEl.classList.add('hidden');
+            elements.nextBtn.classList.add('hidden');
+
+            q.answers.forEach((answer, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all';
+                btn.textContent = answer;
+                btn.addEventListener('click', () => checkAnswer(i));
+                elements.answersEl.appendChild(btn);
+            });
+        }
+
+        // Verificar resposta
+        function checkAnswer(selected) {
+            const q = questions[currentQ];
+            const buttons = elements.answersEl.querySelectorAll('button');
+            
+            buttons.forEach((btn, i) => {
+                btn.disabled = true;
+                if (i === q.correct) {
+                    btn.classList.add('bg-green-500', 'text-white');
+                } else if (i === selected && i !== q.correct) {
+                    btn.classList.add('bg-red-500', 'text-white', 'shake');
+                }
+            });
+
+            if (selected === q.correct) {
+                score += 20;
+                correct++;
+                elements.feedbackEl.className = 'mt-4 p-3 bg-green-100 text-green-800 rounded-lg';
+                elements.feedbackEl.innerHTML = `<strong>Correto!</strong> ${q.explanation}`;
+                createConfetti();
+            } else {
+                elements.feedbackEl.className = 'mt-4 p-3 bg-red-100 text-red-800 rounded-lg';
+                elements.feedbackEl.innerHTML = `<strong>Incorreto!</strong> ${q.explanation}`;
+            }
+
+            elements.scoreEl.textContent = score;
+            elements.feedbackEl.classList.remove('hidden');
+            elements.nextBtn.classList.remove('hidden');
+        }
+
+        // Efeito de confeti
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -10 + 'px';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.style.opacity = 1;
+                    confetti.style.transform = `translate(${Math.random() * 200 - 100}px, ${Math.random() * 100 + 100}px) rotate(${Math.random() * 360}deg)`;
+                    confetti.style.transition = `all ${Math.random() * 2 + 1}s ease-out`;
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 2000);
+                }, 10);
+            }
+        }
+
+        // Próxima pergunta
+        function nextQuestion() {
+            currentQ++;
+            loadQuestion();
+        }
+
+        // Mostrar resultados
+        function showResults() {
+            elements.quizScreen.classList.add('hidden');
+            elements.resultScreen.classList.remove('hidden');
+            elements.finalScoreEl.textContent = score;
+            elements.correctCountEl.textContent = correct;
+            
+            if (correct === questions.length) {
+                createConfetti();
+            }
+        }
+    </script>
+</body>
+</html>
